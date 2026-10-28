@@ -1,7 +1,7 @@
 import axios from 'axios'
 
-// Backend runs on port 8080 with /api context path
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080'
+// Backend production base URL
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://milkmanagementsystem.devs.surf'
 
 const api = axios.create({
   baseURL: API_BASE_URL,

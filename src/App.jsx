@@ -8,6 +8,7 @@ import CustomerNav from './components/CustomerNav'
 import ProtectedRoute from './components/ProtectedRoute'
 
 // Pages
+import Home from './pages/Home'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import AdminDashboard from './pages/AdminDashboard'
@@ -64,21 +65,8 @@ function AppContent() {
             <Route path="/customer/profile" element={<CustomerProfile />} />
           </Route>
 
-          {/* Root and Fallback Redirection */}
-          <Route
-            path="/"
-            element={
-              isAuthenticated ? (
-                isAdmin ? (
-                  <Navigate to="/admin/dashboard" replace />
-                ) : (
-                  <Navigate to="/customer/dashboard" replace />
-                )
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            }
-          />
+          {/* Root Landing Page */}
+          <Route path="/" element={<Home />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

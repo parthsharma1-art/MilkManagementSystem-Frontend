@@ -36,8 +36,8 @@ api.interceptors.response.use(
       // Clear token if expired or invalid
       localStorage.removeItem('milk_token')
       localStorage.removeItem('milk_user')
-      if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {
-        window.location.href = '/login'
+      if (window.location.pathname !== '/login' && window.location.pathname !== '/register' && window.location.pathname !== '/') {
+        window.location.href = '/'
       }
     }
     return Promise.reject(error)

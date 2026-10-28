@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
-import { LogOut, User, Shield, Sun, Moon } from 'lucide-react'
+import { LogOut, User, Shield, Sun, Moon, LogIn } from 'lucide-react'
 
 export default function Navbar() {
   const { t } = useTranslation()
@@ -12,7 +12,7 @@ export default function Navbar() {
 
   return (
     <header className="app-header">
-      <Link to={isAdmin ? '/admin/dashboard' : isCustomer ? '/customer/dashboard' : '/login'} className="header-brand">
+      <Link to={isAdmin ? '/admin/dashboard' : isCustomer ? '/customer/dashboard' : '/'} className="header-brand">
         <div className="brand-icon">M</div>
         <div className="brand-text">
           <h1>{t('app.title')}</h1>
@@ -61,7 +61,7 @@ export default function Navbar() {
           </button>
         </div>
 
-        {isAuthenticated && user && (
+        {isAuthenticated && user ? (
           <>
             <div className="user-badge">
               {isAdmin ? <Shield size={16} color="#1e3a8a" /> : <User size={16} color="#0284c7" />}
@@ -74,6 +74,11 @@ export default function Navbar() {
               <span>{t('nav.logout')}</span>
             </button>
           </>
+        ) : (
+          <Link to="/login" className="btn btn-primary btn-sm" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.85rem' }}>
+            <LogIn size={15} />
+            <span>{t('nav.login')}</span>
+          </Link>
         )}
       </div>
     </header>

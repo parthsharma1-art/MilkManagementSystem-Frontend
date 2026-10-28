@@ -66,7 +66,7 @@ export const AuthProvider = ({ children }) => {
     setUser(null)
     localStorage.removeItem('milk_token')
     localStorage.removeItem('milk_user')
-    window.location.href = '/login'
+    window.location.href = '/'
   }
 
   const switchLanguage = (newLang) => {

@@ -79,9 +79,7 @@ export default function ImageUploadOcr() {
     formData.append('shift', shift)
 
     try {
-      const res = await api.post('/api/admin/ocr/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      })
+      const res = await api.post('/api/admin/ocr/upload', formData)
       const result = res.data
       setOcrResult(result)
       // Set editable preview entries

@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 // Backend production base URL
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://milkmanagementsystem.devs.surf'
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://milkmanagement.devs.surf'
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -10,13 +10,19 @@ const api = axios.create({
   },
 })
 
-// Request Interceptor: Attach JWT Token & normalize to /api prefix
+// Request Interceptor: Attach JWT Token, handle FormData boundary & normalize to /api prefix
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('milk_token')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
+
+    // When sending FormData, delete Content-Type so browser automatically generates multipart boundary
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type']
+    }
+
     // Ensure every API URL has /api prefix
     if (config.url && !config.url.startsWith('http')) {
       if (!config.url.startsWith('/api')) {

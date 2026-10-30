@@ -8,11 +8,11 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'https://milkmanagementsystem.devs.surf',
+        target: 'https://milkmanagement.devs.surf',
         changeOrigin: true
       },
       '/uploads': {
-        target: 'https://milkmanagementsystem.devs.surf/api',
+        target: 'https://milkmanagement.devs.surf/api',
         changeOrigin: true
       }
     }

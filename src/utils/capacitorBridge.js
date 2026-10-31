@@ -14,10 +14,13 @@ export function useCapacitorNative() {
 
     const initNativeUI = async () => {
       try {
-        await StatusBar.setStyle({ style: Style.Dark })
-        await StatusBar.setBackgroundColor({ color: '#0f172a' })
+        // Hide Android status bar (battery, network, clock) for full immersive screen
+        await StatusBar.hide()
       } catch (e) {
-        // Non-fatal if StatusBar plugin unavailable
+        try {
+          await StatusBar.setStyle({ style: Style.Dark })
+          await StatusBar.setBackgroundColor({ color: '#0f172a' })
+        } catch (ignore) {}
       }
 
       try {

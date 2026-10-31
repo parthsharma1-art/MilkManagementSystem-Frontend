@@ -18,7 +18,10 @@ export default function Navbar() {
       <Link to={isAdmin ? '/admin/dashboard' : isCustomer ? '/customer/dashboard' : '/'} className="header-brand">
         <div className="brand-icon">M</div>
         <div className="brand-text">
-          <h1>{t('app.title')}</h1>
+          <h1>
+            <span className="brand-title-full">{t('app.title')}</span>
+            <span className="brand-title-short">{language === 'hi' ? 'डेयरी' : 'Dairy'}</span>
+          </h1>
           <p>{t('app.subtitle')}</p>
         </div>
       </Link>

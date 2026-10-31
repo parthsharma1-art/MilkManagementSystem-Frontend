@@ -3,12 +3,14 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
 import { LogIn, Shield, User, AlertCircle, ArrowRight, Eye, EyeOff } from 'lucide-react'
+import { Capacitor } from '@capacitor/core'
 import DownloadApkButton from '../components/DownloadApkButton'
 
 export default function Login() {
   const { t } = useTranslation()
   const { login } = useAuth()
   const navigate = useNavigate()
+  const isNative = typeof window !== 'undefined' && Capacitor.isNativePlatform()
 
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
@@ -160,8 +162,8 @@ export default function Login() {
           </Link>
         </div>
 
-        {/* Direct Android APK Download Banner */}
-        <DownloadApkButton variant="card" />
+        {/* Direct Android APK Download Banner (shown only on web browsers) */}
+        {!isNative && <DownloadApkButton variant="card" />}
       </div>
     </div>
   )

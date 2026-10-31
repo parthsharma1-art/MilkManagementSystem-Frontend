@@ -4,6 +4,7 @@
   "webDir": "dist",
   "bundledWebRuntime": false,
   "server": {
+    "url": "https://milk-management-system1.vercel.app",
     "androidScheme": "https",
     "cleartext": true
   },
@@ -27,4 +28,3 @@
     }
   }
 }
-

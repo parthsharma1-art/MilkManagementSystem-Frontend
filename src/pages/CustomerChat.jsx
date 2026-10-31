@@ -129,9 +129,9 @@ export default function CustomerChat() {
         style={{
           display: 'flex',
           flexDirection: 'column',
-          height: 'calc(100vh - 220px)',
-          minHeight: 480,
-          maxHeight: 700,
+          height: 'calc(100vh - 200px)',
+          minHeight: 'min(480px, 72vh)',
+          maxHeight: 750,
           padding: 0,
           overflow: 'hidden',
           borderRadius: 'var(--radius-lg)',

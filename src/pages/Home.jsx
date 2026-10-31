@@ -15,12 +15,14 @@ import {
   TrendingUp,
   LayoutDashboard
 } from 'lucide-react'
+import { Capacitor } from '@capacitor/core'
 import DownloadApkButton, { AndroidIcon } from '../components/DownloadApkButton'
 
 export default function Home() {
   const { t } = useTranslation()
   const { isAuthenticated, isAdmin, user } = useAuth()
   const navigate = useNavigate()
+  const isNative = typeof window !== 'undefined' && Capacitor.isNativePlatform()
 
   return (
     <div className="home-container" style={{ maxWidth: '1100px', margin: '0 auto', padding: '2rem 1rem 4rem' }}>
@@ -104,48 +106,50 @@ export default function Home() {
             </>
           )}
 
-          {/* Download Android App (APK) Button */}
-          <DownloadApkButton variant="hero" />
+          {/* Download Android App (APK) Button (shown on browser visitors) */}
+          {!isNative && <DownloadApkButton variant="hero" />}
         </div>
       </section>
 
-      {/* Mobile App Download Callout Banner */}
-      <section style={{
-        marginTop: '-1rem',
-        marginBottom: '2.5rem',
-        padding: '1.25rem 1.5rem',
-        background: 'var(--color-bg-card)',
-        border: '1px solid var(--color-border)',
-        borderRadius: 'var(--radius-md)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: '1rem'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <div style={{
-            width: '46px',
-            height: '46px',
-            borderRadius: '10px',
-            background: 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#fff',
-            flexShrink: 0
-          }}>
-            <AndroidIcon size={26} color="#ffffff" />
+      {/* Mobile App Download Callout Banner (shown on browser visitors) */}
+      {!isNative && (
+        <section style={{
+          marginTop: '-1rem',
+          marginBottom: '2.5rem',
+          padding: '1.25rem 1.5rem',
+          background: 'var(--color-bg-card)',
+          border: '1px solid var(--color-border)',
+          borderRadius: 'var(--radius-md)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '1rem'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div style={{
+              width: '46px',
+              height: '46px',
+              borderRadius: '10px',
+              background: 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#fff',
+              flexShrink: 0
+            }}>
+              <AndroidIcon size={26} color="#ffffff" />
+            </div>
+            <div>
+              <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 600 }}>Get the Dairy Android App</h3>
+              <p style={{ margin: '0.2rem 0 0', fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
+                Install on any Android smartphone • Real-time milk delivery notifications & passbook
+              </p>
+            </div>
           </div>
-          <div>
-            <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 600 }}>Get the Dairy Android App</h3>
-            <p style={{ margin: '0.2rem 0 0', fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
-              Install on any Android smartphone • Real-time milk delivery notifications & passbook
-            </p>
-          </div>
-        </div>
-        <DownloadApkButton variant="hero" style={{ padding: '0.6rem 1.25rem', fontSize: '0.9rem' }} />
-      </section>
+          <DownloadApkButton variant="hero" style={{ padding: '0.6rem 1.25rem', fontSize: '0.9rem' }} />
+        </section>
+      )}
 
       {/* Feature Highlights Grid */}
       <section style={{ marginBottom: '3rem' }}>

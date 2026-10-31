@@ -181,9 +181,9 @@ export default function AdminChat() {
           padding: 0,
           display: 'grid',
           gridTemplateColumns: window.innerWidth > 768 ? '320px 1fr' : '1fr',
-          height: 'calc(100vh - 220px)',
-          minHeight: 520,
-          maxHeight: 740,
+          height: 'calc(100vh - 200px)',
+          minHeight: 'min(520px, 75vh)',
+          maxHeight: 780,
           overflow: 'hidden',
           borderRadius: 'var(--radius-lg)',
         }}

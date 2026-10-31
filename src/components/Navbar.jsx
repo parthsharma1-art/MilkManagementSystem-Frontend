@@ -4,12 +4,14 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import { LogOut, User, Shield, Sun, Moon, LogIn } from 'lucide-react'
+import { Capacitor } from '@capacitor/core'
 import DownloadApkButton from './DownloadApkButton'
 
 export default function Navbar() {
   const { t } = useTranslation()
   const { user, isAuthenticated, isAdmin, isCustomer, logout, language, switchLanguage } = useAuth()
   const { theme, isDark, toggleTheme } = useTheme()
+  const isNative = typeof window !== 'undefined' && Capacitor.isNativePlatform()
 
   return (
     <header className="app-header">
@@ -22,8 +24,8 @@ export default function Navbar() {
       </Link>
 
       <div className="header-actions">
-        {/* Direct Android APK Download Button */}
-        <DownloadApkButton variant="header" />
+        {/* Direct Android APK Download Button (only shown on web browsers) */}
+        {!isNative && <DownloadApkButton variant="header" />}
 
         {/* Dark / Light Mode Toggle */}
         <button
@@ -54,14 +56,16 @@ export default function Navbar() {
             className={`lang-btn ${language === 'en' ? 'active' : ''}`}
             onClick={() => switchLanguage('en')}
           >
-            English
+            <span className="lang-full">English</span>
+            <span className="lang-short">EN</span>
           </button>
           <button
             type="button"
             className={`lang-btn ${language === 'hi' ? 'active' : ''}`}
             onClick={() => switchLanguage('hi')}
           >
-            हिन्दी
+            <span className="lang-full">हिन्दी</span>
+            <span className="lang-short">हि</span>
           </button>
         </div>
 

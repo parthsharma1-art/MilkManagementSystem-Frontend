@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import api from '../services/api'
 import { formatDateDMY } from '../utils/dateUtils'
+import { saveDraft, getDraft, clearDraft, queueOfflineAction } from '../utils/draftStorage'
 import {
   CreditCard,
   PlusCircle,
@@ -75,15 +76,27 @@ export default function PaymentsAndLedger() {
     }
   }
 
+  const [draftRestored, setDraftRestored] = useState(false)
+
   const handleOpenPayment = (customerId = '') => {
-    setFormData({
-      customerId: customerId || selectedCustomerId || '',
-      amount: '',
-      paymentDate: new Date().toISOString().split('T')[0],
-      paymentMethod: 'UPI',
-      referenceNumber: '',
-      notes: '',
-    })
+    const saved = getDraft('payment_record_draft')
+    if (saved && (saved.amount || saved.notes || saved.referenceNumber)) {
+      setFormData({
+        ...saved,
+        customerId: customerId || saved.customerId || selectedCustomerId || '',
+      })
+      setDraftRestored(true)
+    } else {
+      setFormData({
+        customerId: customerId || selectedCustomerId || '',
+        amount: '',
+        paymentDate: new Date().toISOString().split('T')[0],
+        paymentMethod: 'UPI',
+        referenceNumber: '',
+        notes: '',
+      })
+      setDraftRestored(false)
+    }
     setShowPaymentModal(true)
   }
 
@@ -95,6 +108,8 @@ export default function PaymentsAndLedger() {
         ...formData,
         amount: Number(formData.amount),
       })
+      clearDraft('payment_record_draft')
+      setDraftRestored(false)
       setSuccess('Payment recorded and allocated successfully.')
       setShowPaymentModal(false)
       fetchInitialData()
@@ -102,7 +117,20 @@ export default function PaymentsAndLedger() {
         fetchCustomerLedger(formData.customerId)
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to record payment.')
+      saveDraft('payment_record_draft', formData)
+      const isServerDown = !err.response || err.response.status >= 500
+      if (isServerDown) {
+        queueOfflineAction({
+          action: 'RECORD_PAYMENT',
+          endpoint: '/api/admin/payments',
+          method: 'POST',
+          payload: { ...formData, amount: Number(formData.amount) },
+          description: `Payment of ₹${formData.amount} for customer ${formData.customerId}`,
+        })
+        setError('Backend is offline! Your payment details are safely stored in local draft so you do not have to fill them again.')
+      } else {
+        setError(err.response?.data?.message || 'Failed to record payment. Preserved in local draft.')
+      }
     }
   }
 
@@ -272,6 +300,43 @@ export default function PaymentsAndLedger() {
             </div>
             <form onSubmit={handleSavePayment}>
               <div className="modal-body">
+                {draftRestored && (
+                  <div
+                    style={{
+                      background: '#f0fdf4',
+                      border: '1px solid #bbf7d0',
+                      color: '#166534',
+                      padding: '0.45rem 0.75rem',
+                      borderRadius: '6px',
+                      marginBottom: '1rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      fontSize: '0.8rem',
+                    }}
+                  >
+                    <span>📝 Restored unsaved payment draft from local storage.</span>
+                    <button
+                      type="button"
+                      className="btn btn-secondary btn-sm"
+                      style={{ padding: '0.15rem 0.45rem', fontSize: '0.7rem' }}
+                      onClick={() => {
+                        clearDraft('payment_record_draft')
+                        setFormData({
+                          customerId: selectedCustomerId || '',
+                          amount: '',
+                          paymentDate: new Date().toISOString().split('T')[0],
+                          paymentMethod: 'UPI',
+                          referenceNumber: '',
+                          notes: '',
+                        })
+                        setDraftRestored(false)
+                      }}
+                    >
+                      Clear Draft
+                    </button>
+                  </div>
+                )}
                 <div className="form-group">
                   <label className="form-label">{t('invoice.selectCustomer')} *</label>
                   <select

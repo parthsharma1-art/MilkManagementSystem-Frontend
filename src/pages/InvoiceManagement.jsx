@@ -12,6 +12,7 @@ import {
   X,
   Play,
   Layers,
+  Calculator,
 } from 'lucide-react'
 
 export default function InvoiceManagement() {
@@ -23,6 +24,7 @@ export default function InvoiceManagement() {
   const [invoices, setInvoices] = useState([])
   const [activeCustomers, setActiveCustomers] = useState([])
   const [loading, setLoading] = useState(true)
+  const [calculatingAll, setCalculatingAll] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
@@ -33,6 +35,9 @@ export default function InvoiceManagement() {
   const [adjustmentReason, setAdjustmentReason] = useState('')
   const [previewInvoice, setPreviewInvoice] = useState(null)
   const [previewLoading, setPreviewLoading] = useState(false)
+
+  // Complete Invoice Inspection Modal (Eye Button)
+  const [viewingInvoice, setViewingInvoice] = useState(null)
 
   useEffect(() => {
     fetchInvoices()
@@ -64,6 +69,24 @@ export default function InvoiceManagement() {
       setActiveCustomers(res.data || [])
     } catch (err) {
       console.error(err)
+    }
+  }
+
+  const handleCalculateAll = async () => {
+    setCalculatingAll(true)
+    setError('')
+    setSuccess('')
+    try {
+      const res = await api.post('/api/admin/invoices/calculate-all', {
+        year: selectedYear,
+        month: selectedMonth,
+      })
+      setSuccess(`✅ Successfully calculated monthly milk and generated/updated invoices for ${res.data.length} customers for ${selectedMonth}/${selectedYear}!`)
+      fetchInvoices()
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to calculate invoices for all users.')
+    } finally {
+      setCalculatingAll(false)
     }
   }
 
@@ -153,7 +176,18 @@ export default function InvoiceManagement() {
           <h2>{t('nav.invoices')}</h2>
           <p className="card-subtitle">{t('invoice.subtitle')}</p>
         </div>
-        <div className="page-header-actions">
+        <div className="page-header-actions" style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={handleCalculateAll}
+            disabled={calculatingAll}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontWeight: 600, background: '#0284c7' }}
+          >
+            <Calculator size={16} />
+            <span>{calculatingAll ? 'Calculating All Customers...' : '⚡ Calculate All Bills / सभी बिलों की गणना करें'}</span>
+          </button>
+
           <button
             type="button"
             className="btn btn-secondary"
@@ -164,7 +198,7 @@ export default function InvoiceManagement() {
           </button>
           <button
             type="button"
-            className="btn btn-primary"
+            className="btn btn-secondary"
             onClick={() => {
               setSelectedCustomerId('')
               setAdjustments('0.00')
@@ -248,13 +282,13 @@ export default function InvoiceManagement() {
                 <th>{t('invoice.invoiceNumber')}</th>
                 <th>{t('customer.customerNumber')}</th>
                 <th>{t('customer.name')}</th>
-                <th>Cow Milk</th>
-                <th>Buffalo Milk</th>
+                <th>Cow Milk (गाय)</th>
+                <th>Buffalo Milk (भैंस)</th>
                 <th>Milk Charges</th>
                 <th>Prev. Balance</th>
                 <th>Final Due</th>
                 <th>{t('invoice.status')}</th>
-                <th style={{ textAlign: 'right' }}>Actions</th>
+                <th style={{ textAlign: 'right', minWidth: '150px' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -283,21 +317,33 @@ export default function InvoiceManagement() {
                       </span>
                     </td>
                     <td style={{ textAlign: 'right' }}>
-                      <button
-                        type="button"
-                        className="btn btn-secondary btn-sm"
-                        onClick={() => handleDownloadPdf(inv.id)}
-                        title={t('invoice.downloadPdf')}
-                      >
-                        <Download size={14} /> PDF
-                      </button>
+                      <div style={{ display: 'inline-flex', gap: '0.35rem', justifyContent: 'flex-end' }}>
+                        <button
+                          type="button"
+                          className="btn btn-secondary btn-sm"
+                          onClick={() => setViewingInvoice(inv)}
+                          title="View Complete Invoice / पूरा बिल देखें"
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
+                        >
+                          <Eye size={14} /> View
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-secondary btn-sm"
+                          onClick={() => handleDownloadPdf(inv.id)}
+                          title={t('invoice.downloadPdf')}
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
+                        >
+                          <Download size={14} /> PDF
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
                   <td colSpan="10" style={{ textAlign: 'center', padding: '2rem', color: 'var(--color-text-muted)' }}>
-                    No invoices generated yet for {selectedMonth}/{selectedYear}.
+                    No invoices generated yet for {selectedMonth}/{selectedYear}. Click "Calculate All Bills" to calculate current month milk consumption and pending dues.
                   </td>
                 </tr>
               )}
@@ -305,6 +351,133 @@ export default function InvoiceManagement() {
           </table>
         </div>
       </div>
+
+      {/* Eye Button: Complete Invoice Inspection Modal */}
+      {viewingInvoice && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: '650px' }}>
+            <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <h3 style={{ margin: 0 }}>Customer Invoice Details (बिल विवरण)</h3>
+                <span style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
+                  #{viewingInvoice.invoiceNumber} &bull; Billing Period: {viewingInvoice.billingMonth}/{viewingInvoice.billingYear}
+                </span>
+              </div>
+              <button type="button" onClick={() => setViewingInvoice(null)} className="btn btn-secondary btn-sm">
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="modal-body">
+              {/* Customer Info Card */}
+              <div style={{ background: '#f8fafc', padding: '0.85rem 1rem', borderRadius: '8px', border: '1px solid var(--color-border)', marginBottom: '1rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
+                  <div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Customer:</div>
+                    <div style={{ fontWeight: 700, fontSize: '1rem', color: '#1e293b' }}>{viewingInvoice.customerName}</div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>ID: {viewingInvoice.customerNumber}</div>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Mobile Number:</div>
+                    <div style={{ fontWeight: 600 }}>{viewingInvoice.customerMobile || '—'}</div>
+                    <span className={viewingInvoice.status === 'PAID' ? 'badge badge-success' : 'badge badge-blue'} style={{ marginTop: '4px' }}>
+                      {viewingInvoice.status}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Itemized Breakdown Table */}
+              <h4 style={{ fontSize: '0.9rem', marginBottom: '0.5rem' }}>Milk Consumption & Rate Breakdown:</h4>
+              <div className="table-responsive" style={{ marginBottom: '1rem' }}>
+                <table className="data-table" style={{ fontSize: '0.875rem' }}>
+                  <thead>
+                    <tr>
+                      <th>Milk Type</th>
+                      <th style={{ textAlign: 'right' }}>Quantity</th>
+                      <th style={{ textAlign: 'right' }}>Rate (₹/L)</th>
+                      <th style={{ textAlign: 'right' }}>Total (₹)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Number(viewingInvoice.totalCowQuantity || 0) > 0 && (
+                      <tr>
+                        <td>🐄 Cow Milk (गाय का दूध)</td>
+                        <td style={{ textAlign: 'right' }}>{viewingInvoice.totalCowQuantity} L</td>
+                        <td style={{ textAlign: 'right' }}>₹{Number(viewingInvoice.cowRate || 0).toFixed(2)}</td>
+                        <td style={{ textAlign: 'right', fontWeight: 600 }}>₹{Number(viewingInvoice.cowCharges || 0).toFixed(2)}</td>
+                      </tr>
+                    )}
+                    {Number(viewingInvoice.totalBuffaloQuantity || 0) > 0 && (
+                      <tr>
+                        <td>🐃 Buffalo Milk (भैंस का दूध)</td>
+                        <td style={{ textAlign: 'right' }}>{viewingInvoice.totalBuffaloQuantity} L</td>
+                        <td style={{ textAlign: 'right' }}>₹{Number(viewingInvoice.buffaloRate || 0).toFixed(2)}</td>
+                        <td style={{ textAlign: 'right', fontWeight: 600 }}>₹{Number(viewingInvoice.buffaloCharges || 0).toFixed(2)}</td>
+                      </tr>
+                    )}
+                    {Number(viewingInvoice.totalCowQuantity || 0) === 0 && Number(viewingInvoice.totalBuffaloQuantity || 0) === 0 && (
+                      <tr>
+                        <td colSpan="4" style={{ textAlign: 'center', color: 'var(--color-text-muted)' }}>No milk recorded for this month.</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Dues & Financial Summary Box */}
+              <div style={{ background: 'var(--color-bg-app)', padding: '1rem 1.25rem', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem', fontSize: '0.875rem' }}>
+                  <div>Total Milk Charges:</div>
+                  <div style={{ textAlign: 'right', fontWeight: 600 }}>₹{Number(viewingInvoice.totalMilkCharges || 0).toFixed(2)}</div>
+
+                  <div>Previous Pending Balance:</div>
+                  <div style={{ textAlign: 'right', fontWeight: 600, color: Number(viewingInvoice.previousOutstandingBalance || 0) > 0 ? '#b45309' : undefined }}>
+                    ₹{Number(viewingInvoice.previousOutstandingBalance || 0).toFixed(2)}
+                  </div>
+
+                  {Number(viewingInvoice.adjustments || 0) !== 0 && (
+                    <>
+                      <div>Adjustments ({viewingInvoice.adjustmentReason || 'General'}):</div>
+                      <div style={{ textAlign: 'right', fontWeight: 600 }}>₹{Number(viewingInvoice.adjustments || 0).toFixed(2)}</div>
+                    </>
+                  )}
+
+                  {Number(viewingInvoice.paymentsAllocated || 0) > 0 && (
+                    <>
+                      <div>Payments Credited:</div>
+                      <div style={{ textAlign: 'right', fontWeight: 600, color: '#16a34a' }}>
+                        - ₹{Number(viewingInvoice.paymentsAllocated || 0).toFixed(2)}
+                      </div>
+                    </>
+                  )}
+
+                  <div style={{ gridColumn: 'span 2', marginTop: '0.5rem', paddingTop: '0.75rem', borderTop: '2px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '1rem', fontWeight: 700 }}>Final Amount Due / कुल बकाया:</span>
+                    <span style={{ fontSize: '1.3rem', fontWeight: 700, color: '#dc2626' }}>
+                      ₹{Number(viewingInvoice.finalAmountDue || 0).toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="modal-footer" style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => handleDownloadPdf(viewingInvoice.id)}
+                style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+              >
+                <Download size={15} /> Download PDF
+              </button>
+              <button type="button" className="btn btn-secondary" onClick={() => setViewingInvoice(null)}>
+                Close / बंद करें
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Generate / Preview Modal */}
       {showGenerateModal && (

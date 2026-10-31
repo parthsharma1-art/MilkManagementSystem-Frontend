@@ -24,6 +24,7 @@ import CustomerMilkHistory from './pages/CustomerMilkHistory'
 import CustomerInvoices from './pages/CustomerInvoices'
 import CustomerLedger from './pages/CustomerLedger'
 import CustomerProfile from './pages/CustomerProfile'
+import OfflineBanner from './components/OfflineBanner'
 
 function AppContent() {
   const { isAuthenticated, isAdmin, isCustomer } = useAuth()
@@ -33,6 +34,9 @@ function AppContent() {
   return (
     <div className="app-layout">
       <Navbar />
+
+      {/* Real-time Offline & Cache Status Banner */}
+      <OfflineBanner />
 
       {/* Role-specific Navigation Bar */}
       {isAuthenticated && isAdmin && !isAuthPage && <AdminNav />}

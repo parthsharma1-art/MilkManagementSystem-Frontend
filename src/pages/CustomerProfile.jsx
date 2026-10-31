@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import api from '../services/api'
 import { useAuth } from '../context/AuthContext'
 import { User, Lock, Globe, Save, CheckCircle, AlertCircle, Eye, EyeOff } from 'lucide-react'
+import { saveDraft, getDraft, clearDraft, queueOfflineAction } from '../utils/draftStorage'
 
 export default function CustomerProfile() {
   const { t, i18n } = useTranslation()
@@ -10,6 +11,7 @@ export default function CustomerProfile() {
 
   const [profile, setProfile] = useState(null)
   const [formData, setFormData] = useState({
+    nameByCustomer: '',
     fullName: '',
     nickname: '',
     email: '',
@@ -40,7 +42,8 @@ export default function CustomerProfile() {
       const res = await api.get('/api/customer/profile')
       setProfile(res.data)
       setFormData({
-        fullName: res.data.fullName || '',
+        nameByCustomer: res.data.nameByCustomer || res.data.fullName || '',
+        fullName: res.data.nameByCustomer || res.data.fullName || '',
         nickname: res.data.nickname || '',
         email: res.data.email || '',
         address: res.data.address || '',
@@ -58,14 +61,34 @@ export default function CustomerProfile() {
     setError('')
     try {
       const res = await api.put('/api/customer/profile', {
-        fullName: formData.fullName,
+        nameByCustomer: formData.nameByCustomer,
+        fullName: formData.nameByCustomer,
         email: formData.email,
         address: formData.address,
       })
+      clearDraft('customer_profile_draft')
       setProfile(res.data)
       setProfileSuccess('Profile updated successfully.')
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to update profile.')
+      saveDraft('customer_profile_draft', formData)
+      const isServerDown = !err.response || err.response.status >= 500
+      if (isServerDown) {
+        queueOfflineAction({
+          action: 'UPDATE_CUSTOMER_PROFILE',
+          endpoint: '/api/customer/profile',
+          method: 'PUT',
+          payload: {
+            nameByCustomer: formData.nameByCustomer,
+            fullName: formData.nameByCustomer,
+            email: formData.email,
+            address: formData.address,
+          },
+          description: 'Profile Information',
+        })
+        setError('Backend server offline! Your profile changes are saved to local storage draft so you do not need to fill them again.')
+      } else {
+        setError(err.response?.data?.message || 'Failed to update profile. Preserved in local draft.')
+      }
     }
   }
 
@@ -132,23 +155,35 @@ export default function CustomerProfile() {
         <form onSubmit={handleUpdateProfile}>
           <div className="form-row">
             <div className="form-group">
-              <label className="form-label">{t('auth.fullName')}</label>
+              <label className="form-label" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span>{t('auth.fullName')} / आपका नाम (nameByCustomer)</span>
+                <span style={{ fontSize: '0.72rem', color: '#16a34a', background: '#dcfce7', padding: '2px 6px', borderRadius: '4px', fontWeight: 500 }}>
+                  You Can Edit
+                </span>
+              </label>
               <input
                 type="text"
                 className="form-control"
-                value={formData.fullName}
-                onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                value={formData.nameByCustomer}
+                onChange={(e) => setFormData({ ...formData, nameByCustomer: e.target.value })}
                 required
               />
             </div>
             <div className="form-group">
-              <label className="form-label">{t('auth.mobileNumber')}</label>
+              <label className="form-label" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span>Dairy Register Name (nameByAdmin)</span>
+                <span style={{ fontSize: '0.72rem', color: '#0369a1', background: '#e0f2fe', padding: '2px 6px', borderRadius: '4px', fontWeight: 500 }}>
+                  Admin Managed
+                </span>
+              </label>
               <input
                 type="text"
                 className="form-control"
-                value={profile?.mobileNumber || ''}
+                value={profile?.nameByAdmin || profile?.fullName || '-'}
                 disabled
-                style={{ background: 'var(--color-bg-muted)', color: 'var(--color-text-muted)' }}
+                readOnly
+                style={{ background: 'var(--color-bg-muted)', color: 'var(--color-text-muted)', cursor: 'not-allowed' }}
+                title="Only Dairy Admin can modify this register name"
               />
             </div>
           </div>

@@ -69,6 +69,9 @@ export default function CustomerDashboard() {
             <div style={{ fontSize: 'clamp(1.5rem, 4vw, 2rem)', fontWeight: 700, fontFamily: 'var(--font-heading)' }}>
               ₹{Number(profile?.currentBalance || 0).toFixed(2)}
             </div>
+            <Link to="/customer/invoices" className="btn btn-sm" style={{ marginTop: '0.5rem', background: '#ffffff', color: '#1e3a8a', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+              ⚡ Calculate & View Bill
+            </Link>
           </div>
         </div>
       </div>

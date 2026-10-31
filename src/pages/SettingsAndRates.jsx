@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import api from '../services/api'
 import { formatDateDMY, formatDateTimeDMY } from '../utils/dateUtils'
+import { saveDraft, getDraft, clearDraft, queueOfflineAction } from '../utils/draftStorage'
 import {
   TrendingUp,
   Save,
@@ -187,12 +188,31 @@ export default function SettingsAndRates() {
         notes: formData.notes,
         cameraPhotoBase64: photoBase64 || null,
       })
+      clearDraft('settings_rates_draft')
       setSuccess('Milk prices and administrator camera verification saved successfully in milk_price collection!')
       setShowCameraModal(false)
       setCapturedPhoto(null)
       fetchRatesAndAudit()
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to update rates.')
+      saveDraft('settings_rates_draft', formData)
+      const isServerDown = !err.response || err.response.status >= 500
+      if (isServerDown) {
+        queueOfflineAction({
+          action: 'UPDATE_MILK_RATES',
+          endpoint: '/api/admin/rates',
+          method: 'POST',
+          payload: {
+            effectiveDate: formData.effectiveDate,
+            cowRatePerLitre: Number(formData.cowRatePerLitre),
+            buffaloRatePerLitre: Number(formData.buffaloRatePerLitre),
+            notes: formData.notes,
+          },
+          description: `Milk Rates: Cow ₹${formData.cowRatePerLitre}, Buffalo ₹${formData.buffaloRatePerLitre}`,
+        })
+        setError('Backend is currently offline! Your entered rates are saved as a local draft so you will not need to enter them again.')
+      } else {
+        setError(err.response?.data?.message || 'Failed to update rates. Preserved in local draft.')
+      }
     } finally {
       setSubmitting(false)
     }

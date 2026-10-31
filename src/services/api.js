@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 // Backend production base URL
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://milkmanagement.devs.surf'
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://milkmanagementsystem.onrender.com'
 
 const api = axios.create({
   baseURL: API_BASE_URL,

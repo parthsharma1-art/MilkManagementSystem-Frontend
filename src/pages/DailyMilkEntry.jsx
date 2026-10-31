@@ -612,8 +612,7 @@ export default function DailyMilkEntry() {
                         <div style={{ fontWeight: 600 }}>
                           {cust.nameByAdminHindi && cust.nameByAdminEnglish
                             ? `${cust.nameByAdminHindi} (${cust.nameByAdminEnglish})`
-                            : (cust.nameByAdmin || cust.fullName)}
-                          {cust.nickname ? ` (${cust.nickname})` : ''}
+                            : (cust.nameByAdmin || cust.nameByCustomer)}
                         </div>
                         <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{cust.mobileNumber}</div>
                       </td>

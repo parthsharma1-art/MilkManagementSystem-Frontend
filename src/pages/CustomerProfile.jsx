@@ -12,8 +12,6 @@ export default function CustomerProfile() {
   const [profile, setProfile] = useState(null)
   const [formData, setFormData] = useState({
     nameByCustomer: '',
-    fullName: '',
-    nickname: '',
     email: '',
     address: '',
   })
@@ -42,9 +40,7 @@ export default function CustomerProfile() {
       const res = await api.get('/api/customer/profile')
       setProfile(res.data)
       setFormData({
-        nameByCustomer: res.data.nameByCustomer || res.data.fullName || '',
-        fullName: res.data.nameByCustomer || res.data.fullName || '',
-        nickname: res.data.nickname || '',
+        nameByCustomer: res.data.nameByCustomer || res.data.nameByAdmin || '',
         email: res.data.email || '',
         address: res.data.address || '',
       })
@@ -62,7 +58,6 @@ export default function CustomerProfile() {
     try {
       const res = await api.put('/api/customer/profile', {
         nameByCustomer: formData.nameByCustomer,
-        fullName: formData.nameByCustomer,
         email: formData.email,
         address: formData.address,
       })
@@ -79,7 +74,6 @@ export default function CustomerProfile() {
           method: 'PUT',
           payload: {
             nameByCustomer: formData.nameByCustomer,
-            fullName: formData.nameByCustomer,
             email: formData.email,
             address: formData.address,
           },
@@ -156,7 +150,7 @@ export default function CustomerProfile() {
           <div className="form-row">
             <div className="form-group">
               <label className="form-label" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span>{t('auth.fullName')} / आपका नाम (nameByCustomer)</span>
+                <span>Customer's Name / आपका नाम (nameByCustomer)</span>
                 <span style={{ fontSize: '0.72rem', color: '#16a34a', background: '#dcfce7', padding: '2px 6px', borderRadius: '4px', fontWeight: 500 }}>
                   You Can Edit
                 </span>
@@ -179,7 +173,7 @@ export default function CustomerProfile() {
               <input
                 type="text"
                 className="form-control"
-                value={profile?.nameByAdmin || profile?.fullName || '-'}
+                value={profile?.nameByAdminHindi && profile?.nameByAdminEnglish ? `${profile.nameByAdminHindi} (${profile.nameByAdminEnglish})` : (profile?.nameByAdmin || '-')}
                 disabled
                 readOnly
                 style={{ background: 'var(--color-bg-muted)', color: 'var(--color-text-muted)', cursor: 'not-allowed' }}
@@ -190,23 +184,6 @@ export default function CustomerProfile() {
 
           <div className="form-row">
             <div className="form-group">
-              <label className="form-label" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span>{t('auth.nickname')}</span>
-                <span style={{ fontSize: '0.72rem', color: '#6366f1', background: '#eef2ff', padding: '2px 6px', borderRadius: '4px', fontWeight: 500 }}>
-                  Admin Managed
-                </span>
-              </label>
-              <input
-                type="text"
-                className="form-control"
-                value={profile?.nickname || '-'}
-                disabled
-                readOnly
-                style={{ background: 'var(--color-bg-muted, #f8fafc)', color: 'var(--color-text-muted, #64748b)', cursor: 'not-allowed' }}
-                title="Nickname is assigned and managed exclusively by the dairy administrator"
-              />
-            </div>
-            <div className="form-group">
               <label className="form-label">{t('auth.email')}</label>
               <input
                 type="email"
@@ -215,16 +192,15 @@ export default function CustomerProfile() {
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               />
             </div>
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">{t('auth.address')}</label>
-            <input
-              type="text"
-              className="form-control"
-              value={formData.address}
-              onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-            />
+            <div className="form-group">
+              <label className="form-label">{t('auth.address')}</label>
+              <input
+                type="text"
+                className="form-control"
+                value={formData.address}
+                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+              />
+            </div>
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>

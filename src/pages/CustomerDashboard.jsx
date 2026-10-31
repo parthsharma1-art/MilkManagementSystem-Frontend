@@ -57,7 +57,7 @@ export default function CustomerDashboard() {
               Customer Portal / ग्राहक पोर्टल
             </span>
             <h2 style={{ color: '#ffffff', fontSize: 'clamp(1.25rem, 3.5vw, 1.6rem)', margin: '0.25rem 0' }}>
-              {profile?.fullName}
+              {profile?.nameByCustomer || profile?.nameByAdmin}
             </h2>
             <p style={{ margin: 0, opacity: 0.9, fontSize: '0.875rem', wordBreak: 'break-word' }}>
               Registered Customer Number: <strong style={{ background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '4px' }}>{profile?.customerNumber}</strong>

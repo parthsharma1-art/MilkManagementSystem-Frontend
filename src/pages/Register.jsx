@@ -10,7 +10,7 @@ export default function Register() {
   const navigate = useNavigate()
 
   const [formData, setFormData] = useState({
-    fullName: '',
+    nameByCustomer: '',
     mobileNumber: '',
     email: '',
     address: '',
@@ -49,9 +49,10 @@ export default function Register() {
 
     setLoading(true)
     try {
+      const nameVal = (formData.nameByCustomer || '').trim()
       const res = await register({
         ...formData,
-        fullName: (formData.fullName || '').trim(),
+        nameByCustomer: nameVal,
         mobileNumber: (formData.mobileNumber || '').trim(),
         email: (formData.email || '').trim(),
         address: (formData.address || '').trim(),
@@ -96,7 +97,7 @@ export default function Register() {
             Registration Under Review
           </h2>
           <p style={{ color: 'var(--color-text-muted)', fontSize: '0.925rem', marginBottom: '1.5rem', maxWidth: 440, margin: '0 auto 1.5rem' }}>
-            Thank you, <strong>{formData.fullName}</strong>. Your registration request has been submitted to the Dairy Administrator.
+            Thank you, <strong>{formData.nameByCustomer}</strong>. Your registration request has been submitted to the Dairy Administrator.
           </p>
 
           <div
@@ -147,12 +148,12 @@ export default function Register() {
         <form onSubmit={handleSubmit}>
           <div className="form-row">
             <div className="form-group">
-              <label className="form-label">{t('auth.fullName')} *</label>
+              <label className="form-label">{t('auth.fullName')} / आपका नाम *</label>
               <input
                 type="text"
-                name="fullName"
+                name="nameByCustomer"
                 className="form-control"
-                value={formData.fullName}
+                value={formData.nameByCustomer}
                 onChange={handleChange}
                 placeholder="e.g. Ramesh Kumar / रमेश कुमार"
                 required

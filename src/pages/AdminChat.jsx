@@ -140,7 +140,7 @@ export default function AdminChat() {
     if (!searchQuery.trim()) return true
     const q = searchQuery.toLowerCase()
     return (
-      (c.fullName && c.fullName.toLowerCase().includes(q)) ||
+      (c.nameByCustomer && c.nameByCustomer.toLowerCase().includes(q)) ||
       (c.nameByAdmin && c.nameByAdmin.toLowerCase().includes(q)) ||
       (c.customerNumber && c.customerNumber.toLowerCase().includes(q)) ||
       (c.mobileNumber && c.mobileNumber.includes(q))
@@ -244,7 +244,7 @@ export default function AdminChat() {
                       <div style={{ fontWeight: hasUnread ? 700 : 600, fontSize: '0.88rem', color: 'var(--color-text-main)' }}>
                         {c.nameByAdminHindi && c.nameByAdminEnglish
                           ? `${c.nameByAdminHindi} (${c.nameByAdminEnglish})`
-                          : (c.nameByAdmin || c.fullName)}
+                          : (c.nameByAdmin || c.nameByCustomer)}
                       </div>
                       {c.lastMessageTime && (
                         <span style={{ fontSize: '0.68rem', color: 'var(--color-text-light)' }}>
@@ -333,7 +333,7 @@ export default function AdminChat() {
                     <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--color-text-main)' }}>
                       {selectedConv.nameByAdminHindi && selectedConv.nameByAdminEnglish
                         ? `${selectedConv.nameByAdminHindi} (${selectedConv.nameByAdminEnglish})`
-                        : (selectedConv.nameByAdmin || selectedConv.fullName)}
+                        : (selectedConv.nameByAdmin || selectedConv.nameByCustomer)}
                     </div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', display: 'flex', gap: '0.5rem' }}>
                       <span>ID: {selectedConv.customerNumber}</span>
@@ -395,7 +395,7 @@ export default function AdminChat() {
                             padding: '0 0.25rem',
                           }}
                         >
-                          {isMe ? 'Dairy Admin (You)' : (selectedConv.fullName || 'Customer')}
+                          {isMe ? 'Dairy Admin (You)' : (selectedConv.nameByCustomer || selectedConv.nameByAdmin || 'Customer')}
                         </div>
                         <div
                           style={{
@@ -449,7 +449,7 @@ export default function AdminChat() {
                 <input
                   type="text"
                   className="form-control"
-                  placeholder={`Reply to ${selectedConv.nameByAdmin || selectedConv.fullName}...`}
+                  placeholder={`Reply to ${selectedConv.nameByAdmin || selectedConv.nameByCustomer}...`}
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
                   disabled={sending}

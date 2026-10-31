@@ -180,7 +180,7 @@ export default function PaymentsAndLedger() {
           >
             {activeCustomers.map((c) => (
               <option key={c.id} value={c.id}>
-                {c.customerNumber} - {c.fullName}
+                {c.customerNumber} - {c.nameByAdminHindi && c.nameByAdminEnglish ? `${c.nameByAdminHindi} (${c.nameByAdminEnglish})` : (c.nameByAdmin || c.nameByCustomer)}
               </option>
             ))}
           </select>
@@ -348,7 +348,7 @@ export default function PaymentsAndLedger() {
                     <option value="">-- Choose Customer --</option>
                     {activeCustomers.map((c) => (
                       <option key={c.id} value={c.id}>
-                        {c.customerNumber} - {c.fullName}
+                        {c.customerNumber} - {c.nameByAdminHindi && c.nameByAdminEnglish ? `${c.nameByAdminHindi} (${c.nameByAdminEnglish})` : (c.nameByAdmin || c.nameByCustomer)}
                       </option>
                     ))}
                   </select>

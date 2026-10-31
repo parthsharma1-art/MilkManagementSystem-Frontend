@@ -53,9 +53,7 @@ export default function CustomerManagement() {
   const [formData, setFormData] = useState({
     nameByAdmin: '',
     nameByCustomer: '',
-    fullName: '',
     mobileNumber: '',
-    nickname: '',
     email: '',
     address: '',
     notes: '',
@@ -65,9 +63,6 @@ export default function CustomerManagement() {
   const updateFormField = (field, val) => {
     setFormData((prev) => {
       const next = { ...prev, [field]: val }
-      if (field === 'nameByAdmin') {
-        next.fullName = val
-      }
       const draftKey = showEditModal && selectedCustomer ? `customer_edit_${selectedCustomer.id}` : 'customer_add'
       saveDraft(draftKey, next)
       return next
@@ -91,7 +86,7 @@ export default function CustomerManagement() {
 
   const handleOpenApproveModal = (req) => {
     setSelectedRequest(req)
-    setApproveAdminName(req.fullName || '')
+    setApproveAdminName(req.nameByCustomer || '')
     setShowApproveModal(true)
   }
 
@@ -103,7 +98,8 @@ export default function CustomerManagement() {
       await api.post(`/api/admin/registrations/${selectedRequest.id}/approve`, {
         nameByAdmin: approveAdminName.trim()
       })
-      setSuccess(`✅ Successfully approved ${selectedRequest.fullName}! Welcome credentials and login link sent via TextBee SMS.`)
+      const applicantName = selectedRequest.nameByCustomer || selectedRequest.mobileNumber
+      setSuccess(`✅ Successfully approved ${applicantName}! Welcome credentials and login link sent via TextBee SMS.`)
       setShowApproveModal(false)
       setSelectedRequest(null)
       fetchPendingRequests()
@@ -116,10 +112,11 @@ export default function CustomerManagement() {
   }
 
   const handleRejectRequest = async (req) => {
-    if (!window.confirm(`Are you sure you want to reject the registration request for ${req.fullName} (${req.mobileNumber})?`)) return
+    const applicantName = req.nameByCustomer || req.mobileNumber
+    if (!window.confirm(`Are you sure you want to reject the registration request for ${applicantName} (${req.mobileNumber})?`)) return
     try {
       await api.post(`/api/admin/registrations/${req.id}/reject`, { reason: 'Rejected by admin' })
-      setSuccess(`Registration request for ${req.fullName} has been rejected.`)
+      setSuccess(`Registration request for ${applicantName} has been rejected.`)
       fetchPendingRequests()
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to reject registration.')
@@ -155,9 +152,7 @@ export default function CustomerManagement() {
       setFormData({
         nameByAdmin: '',
         nameByCustomer: '',
-        fullName: '',
         mobileNumber: '',
-        nickname: '',
         email: '',
         address: '',
         notes: '',
@@ -176,11 +171,9 @@ export default function CustomerManagement() {
       setDraftRestored(true)
     } else {
       setFormData({
-        nameByAdmin: customer.nameByAdmin || customer.fullName || '',
-        nameByCustomer: customer.nameByCustomer || customer.fullName || '',
-        fullName: customer.fullName || customer.nameByAdmin || '',
+        nameByAdmin: customer.nameByAdmin || '',
+        nameByCustomer: customer.nameByCustomer || customer.nameByAdmin || '',
         mobileNumber: customer.mobileNumber || '',
-        nickname: customer.nickname || '',
         email: customer.email || '',
         address: customer.address || '',
         notes: customer.notes || '',
@@ -198,7 +191,6 @@ export default function CustomerManagement() {
     try {
       const payload = {
         ...formData,
-        fullName: formData.nameByAdmin || formData.fullName,
       }
       if (showEditModal && selectedCustomer) {
         await api.put(`/api/admin/customers/${selectedCustomer.id}`, payload)
@@ -221,7 +213,7 @@ export default function CustomerManagement() {
           action: showEditModal ? 'UPDATE_CUSTOMER' : 'CREATE_CUSTOMER',
           endpoint: showEditModal ? `/api/admin/customers/${selectedCustomer.id}` : '/api/admin/customers',
           method: showEditModal ? 'PUT' : 'POST',
-          payload: { ...formData, fullName: formData.nameByAdmin || formData.fullName },
+          payload: { ...formData },
           description: `Customer: ${formData.nameByAdmin}`,
         })
         setError('Backend server is unreachable! Your entered data has been securely saved to local storage draft so you do not have to type it again. You can retry once the server is back.')
@@ -453,19 +445,19 @@ export default function CustomerManagement() {
                         {c.profileImageUrl ? (
                           <img
                             src={c.profileImageUrl}
-                            alt={c.nameByAdmin || c.fullName}
+                            alt={c.nameByAdmin || c.nameByCustomer}
                             style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover' }}
                           />
                         ) : (
                           <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#0284c7', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.85rem', fontWeight: 600 }}>
-                            {(c.nameByAdmin || c.fullName || 'C').charAt(0)}
+                            {(c.nameByAdmin || c.nameByCustomer || 'C').charAt(0)}
                           </div>
                         )}
                         <div>
                           <div style={{ fontWeight: 700, color: 'var(--color-text-main)' }}>
                             {c.nameByAdminHindi && c.nameByAdminEnglish
                               ? `${c.nameByAdminHindi} (${c.nameByAdminEnglish})`
-                              : (c.nameByAdmin || c.fullName)}
+                              : (c.nameByAdmin || c.nameByCustomer)}
                           </div>
                           <span style={{ fontSize: '0.72rem', color: '#0369a1', background: '#e0f2fe', padding: '1px 6px', borderRadius: '4px', fontWeight: 600 }}>
                             Admin Register Key (Hindi &amp; English)
@@ -475,12 +467,7 @@ export default function CustomerManagement() {
                     </td>
                     <td>
                       <div>
-                        <div style={{ fontWeight: 500 }}>{c.nameByCustomer || c.fullName}</div>
-                        {c.nickname && (
-                          <div style={{ fontSize: '0.75rem', color: '#6366f1' }}>
-                            Alias: {c.nickname}
-                          </div>
-                        )}
+                        <div style={{ fontWeight: 500 }}>{c.nameByCustomer || c.nameByAdmin}</div>
                       </div>
                     </td>
                     <td>{c.mobileNumber}</td>
@@ -597,7 +584,7 @@ export default function CustomerManagement() {
                     <tr key={req.id}>
                       <td>
                         <div style={{ fontWeight: 600, color: 'var(--color-text-main)' }}>
-                          {req.fullName}
+                          {req.nameByCustomer || req.mobileNumber}
                         </div>
                         <span className="badge badge-warning" style={{ fontSize: '0.7rem' }}>
                           Awaiting Approval
@@ -666,7 +653,7 @@ export default function CustomerManagement() {
             <div className="modal-body">
               <div style={{ marginBottom: '1.25rem', padding: '0.85rem', background: 'var(--color-bg-muted)', borderRadius: '6px' }}>
                 <div style={{ fontSize: '0.85rem', marginBottom: '0.25rem' }}>
-                  <strong>Applicant:</strong> {selectedRequest.fullName}
+                  <strong>Applicant:</strong> {selectedRequest.nameByCustomer || selectedRequest.mobileNumber}
                 </div>
                 <div style={{ fontSize: '0.85rem', marginBottom: '0.25rem' }}>
                   <strong>Mobile Number (Login ID):</strong> {selectedRequest.mobileNumber}
@@ -763,9 +750,7 @@ export default function CustomerManagement() {
                         setFormData({
                           nameByAdmin: '',
                           nameByCustomer: '',
-                          fullName: '',
                           mobileNumber: '',
-                          nickname: '',
                           email: '',
                           address: '',
                           notes: '',
@@ -848,26 +833,15 @@ export default function CustomerManagement() {
                     </div>
                   </div>
                   <div className="form-group">
-                    <label className="form-label">{t('customer.nickname')}</label>
+                    <label className="form-label">Email Address</label>
                     <input
-                      type="text"
+                      type="email"
                       className="form-control"
-                      value={formData.nickname}
-                      onChange={(e) => updateFormField('nickname', e.target.value)}
-                      placeholder="e.g. Ramesh Bhai (Admin alias)"
+                      value={formData.email}
+                      onChange={(e) => updateFormField('email', e.target.value)}
+                      placeholder="optional@example.com"
                     />
                   </div>
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Email Address</label>
-                  <input
-                    type="email"
-                    className="form-control"
-                    value={formData.email}
-                    onChange={(e) => updateFormField('email', e.target.value)}
-                    placeholder="optional@example.com"
-                  />
                 </div>
 
                 <div className="form-group">
@@ -923,7 +897,7 @@ export default function CustomerManagement() {
             <form onSubmit={handleUploadPhoto}>
               <div className="modal-body">
                 <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginBottom: '1rem' }}>
-                  Upload photo for <strong>{selectedCustomer.customerNumber}</strong> ({selectedCustomer.fullName})
+                  Upload photo for <strong>{selectedCustomer.customerNumber}</strong> ({selectedCustomer.nameByAdmin || selectedCustomer.nameByCustomer})
                 </p>
                 <input
                   type="file"

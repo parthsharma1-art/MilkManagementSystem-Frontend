@@ -189,7 +189,7 @@ export default function ImageUploadOcr() {
              (c.nameByAdminEnglish && c.nameByAdminEnglish.trim().toLowerCase() === cleanAdminName.toLowerCase())
     )
     if (dupName) {
-      setCreateModalError(`Customer with Admin Name "${cleanAdminName}" already exists (Customer ${dupName.customerNumber} - ${dupName.nameByAdmin || dupName.fullName}). nameByAdmin must be unique!`)
+      setCreateModalError(`Customer with Admin Name "${cleanAdminName}" already exists (Customer ${dupName.customerNumber} - ${dupName.nameByAdmin || dupName.nameByCustomer}). nameByAdmin must be unique!`)
       return
     }
 
@@ -226,7 +226,7 @@ export default function ImageUploadOcr() {
             return {
               ...row,
               customerId: newCust.id,
-              customerName: newCust.nameByAdmin || newCust.fullName,
+              customerName: newCust.nameByAdmin || newCust.nameByCustomer,
               customerNumber: newCust.customerNumber,
               uncertain: false,
               warningMessage: '',
@@ -237,7 +237,7 @@ export default function ImageUploadOcr() {
         })
       )
 
-      setSuccess(`✅ Successfully created customer "${newCust.nameByAdmin || newCust.fullName}" (${newCust.customerNumber})! Credentials sent via SMS to ${newCust.mobileNumber}.`)
+      setSuccess(`✅ Successfully created customer "${newCust.nameByAdmin || newCust.nameByCustomer}" (${newCust.customerNumber})! Credentials sent via SMS to ${newCust.mobileNumber}.`)
       setShowCreateModal(false)
       setModalRowId(null)
     } catch (err) {
@@ -288,7 +288,7 @@ export default function ImageUploadOcr() {
             return {
               ...e,
               customerId: newCust.id,
-              customerName: newCust.nameByAdmin || newCust.fullName,
+              customerName: newCust.nameByAdmin || newCust.nameByCustomer,
               customerNumber: newCust.customerNumber,
               uncertain: false,
               warningMessage: '',
@@ -298,7 +298,7 @@ export default function ImageUploadOcr() {
           return e
         })
       )
-      setSuccess(`✅ Created customer "${newCust.nameByAdmin || newCust.fullName}" (${newCust.customerNumber}) with user login account!`)
+      setSuccess(`✅ Created customer "${newCust.nameByAdmin || newCust.nameByCustomer}" (${newCust.customerNumber}) with user login account!`)
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to create customer.')
       setEditableEntries((prev) =>
@@ -368,7 +368,7 @@ export default function ImageUploadOcr() {
              (c.nameByAdminEnglish && c.nameByAdminEnglish.trim().toLowerCase() === cleanAdminName.toLowerCase())
     )
     if (dupNameInDb) {
-      setBatchError(`Customer with Admin Name "${cleanAdminName}" already exists (Customer ${dupNameInDb.customerNumber} - ${dupNameInDb.nameByAdmin || dupNameInDb.fullName}). Please provide a unique nameByAdmin!`)
+      setBatchError(`Customer with Admin Name "${cleanAdminName}" already exists (Customer ${dupNameInDb.customerNumber} - ${dupNameInDb.nameByAdmin || dupNameInDb.nameByCustomer}). Please provide a unique nameByAdmin!`)
       return
     }
 
@@ -421,7 +421,7 @@ export default function ImageUploadOcr() {
             return {
               ...row,
               customerId: newCust.id,
-              customerName: newCust.nameByAdmin || newCust.fullName,
+              customerName: newCust.nameByAdmin || newCust.nameByCustomer,
               customerNumber: newCust.customerNumber,
               uncertain: false,
               warningMessage: '',
@@ -539,7 +539,7 @@ export default function ImageUploadOcr() {
                 return {
                   ...row,
                   customerId: newCust.id,
-                  customerName: newCust.nameByAdmin || newCust.fullName,
+                  customerName: newCust.nameByAdmin || newCust.nameByCustomer,
                   customerNumber: newCust.customerNumber,
                   uncertain: false,
                   warningMessage: '',
@@ -582,7 +582,7 @@ export default function ImageUploadOcr() {
           if (field === 'customerId') {
             const found = activeCustomers.find((c) => c.id === value)
             if (found) {
-              updated.customerName = found.nameByAdmin || found.fullName
+              updated.customerName = found.nameByAdmin || found.nameByCustomer
               updated.customerNumber = found.customerNumber
               updated.uncertain = false
               updated.warningMessage = ''
@@ -971,7 +971,7 @@ export default function ImageUploadOcr() {
                         <option value="">-- Select Customer (कृपया ग्राहक चुनें) --</option>
                         {activeCustomers.map((c) => (
                           <option key={c.id} value={c.id}>
-                            {c.customerNumber} - {c.nameByAdminHindi && c.nameByAdminEnglish ? `${c.nameByAdminHindi} (${c.nameByAdminEnglish})` : (c.nameByAdmin || c.fullName)} {c.nickname ? `(${c.nickname})` : ''}
+                            {c.customerNumber} - {c.nameByAdminHindi && c.nameByAdminEnglish ? `${c.nameByAdminHindi} (${c.nameByAdminEnglish})` : (c.nameByAdmin || c.nameByCustomer)}
                           </option>
                         ))}
                       </select>

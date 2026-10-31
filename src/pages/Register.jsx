@@ -22,6 +22,8 @@ export default function Register() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [isSubmitted, setIsSubmitted] = useState(false)
+  const [submittedMessage, setSubmittedMessage] = useState('')
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -47,7 +49,7 @@ export default function Register() {
 
     setLoading(true)
     try {
-      await register({
+      const res = await register({
         ...formData,
         fullName: (formData.fullName || '').trim(),
         mobileNumber: (formData.mobileNumber || '').trim(),
@@ -56,12 +58,75 @@ export default function Register() {
         password: trimmedPassword,
         confirmPassword: trimmedConfirmPassword,
       })
-      navigate('/customer/dashboard')
+      if (res?.status === 'PENDING_APPROVAL') {
+        setIsSubmitted(true)
+        setSubmittedMessage(res.message || 'Your registration request is pending admin approval.')
+      } else {
+        navigate('/customer/dashboard')
+      }
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed. Please check inputs.')
     } finally {
       setLoading(false)
     }
+  }
+
+  if (isSubmitted) {
+    return (
+      <div className="auth-container auth-wide">
+        <div className="card" style={{ textAlign: 'center', padding: '2.5rem 1.75rem' }}>
+          <div
+            style={{
+              width: 72,
+              height: 72,
+              margin: '0 auto 1.25rem',
+              borderRadius: '50%',
+              background: '#ecfdf5',
+              color: '#059669',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '2.2rem',
+              border: '2px solid #a7f3d0',
+            }}
+          >
+            ⏳
+          </div>
+          <h2 style={{ fontSize: '1.5rem', marginBottom: '0.5rem', color: 'var(--color-text-main)' }}>
+            Registration Under Review
+          </h2>
+          <p style={{ color: 'var(--color-text-muted)', fontSize: '0.925rem', marginBottom: '1.5rem', maxWidth: 440, margin: '0 auto 1.5rem' }}>
+            Thank you, <strong>{formData.fullName}</strong>. Your registration request has been submitted to the Dairy Administrator.
+          </p>
+
+          <div
+            style={{
+              background: '#f0fdf4',
+              border: '1px solid #bbf7d0',
+              borderRadius: '8px',
+              padding: '1rem',
+              color: '#166534',
+              fontSize: '0.875rem',
+              marginBottom: '2rem',
+              textAlign: 'left',
+              display: 'flex',
+              gap: '0.75rem',
+              alignItems: 'flex-start',
+            }}
+          >
+            <span style={{ fontSize: '1.25rem', lineHeight: 1 }}>📲</span>
+            <div>
+              <strong>Instant SMS Notification:</strong> Once the admin approves your account, you will receive an SMS on <strong>{formData.mobileNumber}</strong> containing your login password and portal link.
+            </div>
+          </div>
+
+          <Link to="/login" className="btn btn-primary" style={{ display: 'inline-flex', padding: '0.65rem 2rem' }}>
+            <ArrowLeft size={16} />
+            <span>Go to Login</span>
+          </Link>
+        </div>
+      </div>
+    )
   }
 
   return (

@@ -46,15 +46,16 @@ export const AuthProvider = ({ children }) => {
     try {
       const res = await api.post('/api/auth/register-customer', customerData)
       const data = res.data
-      setToken(data.token)
-      setUser(data)
-      localStorage.setItem('milk_token', data.token)
-      localStorage.setItem('milk_user', JSON.stringify(data))
+      if (data.token) {
+        setToken(data.token)
+        setUser(data)
+        localStorage.setItem('milk_token', data.token)
+        localStorage.setItem('milk_user', JSON.stringify(data))
 
-      if (data.preferredLanguage) {
-        setLanguage(data.preferredLanguage)
+        if (data.preferredLanguage) {
+          setLanguage(data.preferredLanguage)
+        }
       }
-
       return data
     } finally {
       setLoading(false)

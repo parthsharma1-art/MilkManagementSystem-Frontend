@@ -976,3 +976,55 @@ button, input, select, textarea {
     font-size: 0.825rem;
   }
 }
+
+/* ==========================================================================
+   Interactive UI Animations & Polished Responsive Styles
+   ========================================================================== */
+
+/* Button active click feedback */
+.btn {
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+}
+.btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+/* Chat Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-light);
+}
+
+/* Table Responsive Container Soft Shadows */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Interactive Card Transitions */
+.card {
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+/* Live Status Pulse Animation */
+@keyframes status-pulse {
+  0% { transform: scale(0.95); opacity: 0.7; }
+  50% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.7; }
+}
+.live-pulse {
+  animation: status-pulse 2s infinite ease-in-out;
+}
+

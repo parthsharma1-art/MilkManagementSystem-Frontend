@@ -1,7 +1,7 @@
 import React from 'react'
 import { NavLink } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { LayoutDashboard, Users, CalendarCheck, UploadCloud, BarChart3, FileText, CreditCard, Settings } from 'lucide-react'
+import { LayoutDashboard, Users, CalendarCheck, UploadCloud, BarChart3, FileText, CreditCard, Settings, MessageCircle } from 'lucide-react'
 
 export default function AdminNav() {
   const { t } = useTranslation()
@@ -9,6 +9,7 @@ export default function AdminNav() {
   const links = [
     { to: '/admin/dashboard', icon: LayoutDashboard, label: t('nav.dashboard') },
     { to: '/admin/customers', icon: Users, label: t('nav.customers') },
+    { to: '/admin/chat', icon: MessageCircle, label: 'Chat' },
     { to: '/admin/daily-entry', icon: CalendarCheck, label: t('nav.dailyEntry') },
     { to: '/admin/upload-ocr', icon: UploadCloud, label: t('nav.ocrUpload') },
     { to: '/admin/reports', icon: BarChart3, label: t('nav.reports') },

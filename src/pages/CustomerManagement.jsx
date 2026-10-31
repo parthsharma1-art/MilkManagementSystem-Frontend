@@ -17,6 +17,9 @@ import {
   FileText,
   Calendar,
   MessageSquare,
+  UserCheck,
+  Clock,
+  ShieldAlert,
 } from 'lucide-react'
 
 export default function CustomerManagement() {
@@ -37,6 +40,15 @@ export default function CustomerManagement() {
   const [showPhotoModal, setShowPhotoModal] = useState(false)
   const [photoFile, setPhotoFile] = useState(null)
   const [draftRestored, setDraftRestored] = useState(false)
+
+  // Pending Registration Approval State
+  const [activeTab, setActiveTab] = useState('customers') // 'customers' or 'approvals'
+  const [pendingRequests, setPendingRequests] = useState([])
+  const [pendingCount, setPendingCount] = useState(0)
+  const [showApproveModal, setShowApproveModal] = useState(false)
+  const [selectedRequest, setSelectedRequest] = useState(null)
+  const [approveAdminName, setApproveAdminName] = useState('')
+  const [approvalLoading, setApprovalLoading] = useState(false)
 
   const [formData, setFormData] = useState({
     nameByAdmin: '',
@@ -64,7 +76,55 @@ export default function CustomerManagement() {
 
   useEffect(() => {
     fetchCustomers()
+    fetchPendingRequests()
   }, [searchQuery, activeFilter, page])
+
+  const fetchPendingRequests = async () => {
+    try {
+      const res = await api.get('/api/admin/registrations/pending')
+      setPendingRequests(res.data || [])
+      setPendingCount((res.data || []).length)
+    } catch (e) {
+      console.warn('Failed to load pending registrations:', e)
+    }
+  }
+
+  const handleOpenApproveModal = (req) => {
+    setSelectedRequest(req)
+    setApproveAdminName(req.fullName || '')
+    setShowApproveModal(true)
+  }
+
+  const handleConfirmApprove = async () => {
+    if (!selectedRequest) return
+    setApprovalLoading(true)
+    setError('')
+    try {
+      await api.post(`/api/admin/registrations/${selectedRequest.id}/approve`, {
+        nameByAdmin: approveAdminName.trim()
+      })
+      setSuccess(`✅ Successfully approved ${selectedRequest.fullName}! Welcome credentials and login link sent via TextBee SMS.`)
+      setShowApproveModal(false)
+      setSelectedRequest(null)
+      fetchPendingRequests()
+      fetchCustomers()
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to approve registration.')
+    } finally {
+      setApprovalLoading(false)
+    }
+  }
+
+  const handleRejectRequest = async (req) => {
+    if (!window.confirm(`Are you sure you want to reject the registration request for ${req.fullName} (${req.mobileNumber})?`)) return
+    try {
+      await api.post(`/api/admin/registrations/${req.id}/reject`, { reason: 'Rejected by admin' })
+      setSuccess(`Registration request for ${req.fullName} has been rejected.`)
+      fetchPendingRequests()
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to reject registration.')
+    }
+  }
 
   const fetchCustomers = async () => {
     try {
@@ -265,8 +325,63 @@ export default function CustomerManagement() {
         </div>
       )}
 
-      {/* Filter and Search Bar */}
-      <div className="card" style={{ padding: '1rem 1.25rem', marginBottom: '1.5rem' }}>
+      {/* Navigation Tabs: Customers vs Pending Approvals */}
+      <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.25rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem', flexWrap: 'wrap' }}>
+        <button
+          type="button"
+          onClick={() => setActiveTab('customers')}
+          style={{
+            background: 'transparent',
+            border: 'none',
+            borderBottom: activeTab === 'customers' ? '3px solid var(--color-primary)' : '3px solid transparent',
+            padding: '0.5rem 1rem',
+            fontWeight: activeTab === 'customers' ? 700 : 500,
+            color: activeTab === 'customers' ? 'var(--color-primary)' : 'var(--color-text-muted)',
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            fontSize: '0.95rem',
+          }}
+        >
+          <Users size={18} />
+          <span>Customer Directory</span>
+          <span className="badge badge-blue">{customers.length}</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('approvals')}
+          style={{
+            background: 'transparent',
+            border: 'none',
+            borderBottom: activeTab === 'approvals' ? '3px solid #ea580c' : '3px solid transparent',
+            padding: '0.5rem 1rem',
+            fontWeight: activeTab === 'approvals' ? 700 : 500,
+            color: activeTab === 'approvals' ? '#ea580c' : 'var(--color-text-muted)',
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            fontSize: '0.95rem',
+          }}
+        >
+          <Clock size={18} />
+          <span>Pending Approvals</span>
+          {pendingCount > 0 ? (
+            <span className="badge badge-warning" style={{ background: '#fef3c7', color: '#b45309', fontWeight: 700 }}>
+              {pendingCount}
+            </span>
+          ) : (
+            <span className="badge badge-secondary">0</span>
+          )}
+        </button>
+      </div>
+
+      {activeTab === 'customers' ? (
+        <>
+          {/* Filter and Search Bar */}
+          <div className="card" style={{ padding: '1rem 1.25rem', marginBottom: '1.5rem' }}>
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
           <div style={{ flex: '1 1 240px', minWidth: 'min(100%, 240px)', position: 'relative' }}>
             <Search size={18} style={{ position: 'absolute', left: '12px', top: '10px', color: 'var(--color-text-light)' }} />
@@ -441,6 +556,174 @@ export default function CustomerManagement() {
           </table>
         </div>
       </div>
+        </>
+      ) : (
+        /* Pending Registrations Tab View */
+        <div className="card" style={{ padding: 0 }}>
+          <div style={{ padding: '1.25rem', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
+            <div>
+              <h3 style={{ fontSize: '1.15rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Clock size={18} color="#ea580c" />
+                <span>Pending Customer Registrations</span>
+              </h3>
+              <p style={{ fontSize: '0.825rem', color: 'var(--color-text-muted)', marginTop: '0.2rem' }}>
+                Review and approve new self-registered customers. Approving will create the account and send an SMS with login details via TextBee.
+              </p>
+            </div>
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm"
+              onClick={fetchPendingRequests}
+            >
+              Refresh Requests
+            </button>
+          </div>
+
+          <div className="table-responsive">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Applicant Name</th>
+                  <th>Mobile Number</th>
+                  <th>Email</th>
+                  <th>Address</th>
+                  <th>Requested On</th>
+                  <th style={{ textAlign: 'right' }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pendingRequests && pendingRequests.length > 0 ? (
+                  pendingRequests.map((req) => (
+                    <tr key={req.id}>
+                      <td>
+                        <div style={{ fontWeight: 600, color: 'var(--color-text-main)' }}>
+                          {req.fullName}
+                        </div>
+                        <span className="badge badge-warning" style={{ fontSize: '0.7rem' }}>
+                          Awaiting Approval
+                        </span>
+                      </td>
+                      <td>
+                        <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>
+                          {req.mobileNumber}
+                        </span>
+                      </td>
+                      <td>{req.email || <span style={{ color: 'var(--color-text-muted)' }}>—</span>}</td>
+                      <td>{req.address || <span style={{ color: 'var(--color-text-muted)' }}>—</span>}</td>
+                      <td>{formatDateDMY(req.createdAt ? req.createdAt.split('T')[0] : '')}</td>
+                      <td style={{ textAlign: 'right' }}>
+                        <div style={{ display: 'inline-flex', gap: '0.5rem' }}>
+                          <button
+                            type="button"
+                            className="btn btn-success btn-sm"
+                            onClick={() => handleOpenApproveModal(req)}
+                            title="Approve Customer & Send SMS"
+                          >
+                            <UserCheck size={14} />
+                            <span>Approve</span>
+                          </button>
+                          <button
+                            type="button"
+                            className="btn btn-secondary btn-sm"
+                            onClick={() => handleRejectRequest(req)}
+                            title="Reject Request"
+                            style={{ color: '#dc2626' }}
+                          >
+                            <XCircle size={14} />
+                            <span>Reject</span>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="6" style={{ textAlign: 'center', padding: '3rem', color: 'var(--color-text-muted)' }}>
+                      🎉 No pending customer registration requests! All submissions have been approved.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Approve Registration Modal */}
+      {showApproveModal && selectedRequest && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: 520 }}>
+            <div className="modal-header">
+              <h3>Approve Customer Registration</h3>
+              <button
+                type="button"
+                onClick={() => { setShowApproveModal(false); setSelectedRequest(null); }}
+                className="btn btn-secondary btn-sm"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <div className="modal-body">
+              <div style={{ marginBottom: '1.25rem', padding: '0.85rem', background: 'var(--color-bg-muted)', borderRadius: '6px' }}>
+                <div style={{ fontSize: '0.85rem', marginBottom: '0.25rem' }}>
+                  <strong>Applicant:</strong> {selectedRequest.fullName}
+                </div>
+                <div style={{ fontSize: '0.85rem', marginBottom: '0.25rem' }}>
+                  <strong>Mobile Number (Login ID):</strong> {selectedRequest.mobileNumber}
+                </div>
+                {selectedRequest.address && (
+                  <div style={{ fontSize: '0.85rem' }}>
+                    <strong>Address:</strong> {selectedRequest.address}
+                  </div>
+                )}
+              </div>
+
+              <div className="form-group">
+                <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span>Admin Register Name (nameByAdmin) *</span>
+                  <span style={{ fontSize: '0.72rem', color: '#0369a1', background: '#e0f2fe', padding: '1px 6px', borderRadius: '4px', fontWeight: 600 }}>
+                    Register Unique Key
+                  </span>
+                </label>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={approveAdminName}
+                  onChange={(e) => setApproveAdminName(e.target.value)}
+                  placeholder="e.g. Ramesh Kumar / रमेश कुमार"
+                  required
+                />
+                <small style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem', marginTop: '0.35rem', display: 'block' }}>
+                  Enter either in Hindi or English. The system will automatically transliterate and save both!
+                </small>
+              </div>
+
+              <div style={{ marginTop: '1rem', padding: '0.65rem 0.85rem', background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '6px', fontSize: '0.8rem', color: '#047857' }}>
+                📲 <strong>Automatic SMS Dispatch:</strong> Upon approval, a welcome SMS containing login credentials and the website link will be sent to <strong>{selectedRequest.mobileNumber}</strong> via TextBee.
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => { setShowApproveModal(false); setSelectedRequest(null); }}
+                disabled={approvalLoading}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleConfirmApprove}
+                disabled={approvalLoading || !approveAdminName.trim()}
+              >
+                <UserCheck size={16} />
+                <span>{approvalLoading ? 'Approving & Sending SMS...' : 'Approve & Send SMS'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Add / Edit Customer Modal */}
       {(showAddModal || showEditModal) && (

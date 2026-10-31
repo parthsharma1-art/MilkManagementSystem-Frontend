@@ -19,11 +19,13 @@ import MonthlyReports from './pages/MonthlyReports'
 import InvoiceManagement from './pages/InvoiceManagement'
 import PaymentsAndLedger from './pages/PaymentsAndLedger'
 import SettingsAndRates from './pages/SettingsAndRates'
+import AdminChat from './pages/AdminChat'
 import CustomerDashboard from './pages/CustomerDashboard'
 import CustomerMilkHistory from './pages/CustomerMilkHistory'
 import CustomerInvoices from './pages/CustomerInvoices'
 import CustomerLedger from './pages/CustomerLedger'
 import CustomerProfile from './pages/CustomerProfile'
+import CustomerChat from './pages/CustomerChat'
 import OfflineBanner from './components/OfflineBanner'
 
 function AppContent() {
@@ -52,6 +54,7 @@ function AppContent() {
           <Route element={<ProtectedRoute allowedRole="ROLE_ADMIN" />}>
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/admin/customers" element={<CustomerManagement />} />
+            <Route path="/admin/chat" element={<AdminChat />} />
             <Route path="/admin/daily-entry" element={<DailyMilkEntry />} />
             <Route path="/admin/upload-ocr" element={<ImageUploadOcr />} />
             <Route path="/admin/reports" element={<MonthlyReports />} />
@@ -63,6 +66,7 @@ function AppContent() {
           {/* Customer Protected Routes */}
           <Route element={<ProtectedRoute allowedRole="ROLE_CUSTOMER" />}>
             <Route path="/customer/dashboard" element={<CustomerDashboard />} />
+            <Route path="/customer/chat" element={<CustomerChat />} />
             <Route path="/customer/milk-history" element={<CustomerMilkHistory />} />
             <Route path="/customer/invoices" element={<CustomerInvoices />} />
             <Route path="/customer/ledger" element={<CustomerLedger />} />

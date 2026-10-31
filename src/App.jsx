@@ -27,11 +27,15 @@ import CustomerLedger from './pages/CustomerLedger'
 import CustomerProfile from './pages/CustomerProfile'
 import CustomerChat from './pages/CustomerChat'
 import OfflineBanner from './components/OfflineBanner'
+import { useCapacitorNative } from './utils/capacitorBridge'
 
 function AppContent() {
   const { isAuthenticated, isAdmin, isCustomer } = useAuth()
   const location = useLocation()
   const isAuthPage = location.pathname === '/login' || location.pathname === '/register'
+
+  // Hook into Capacitor native Android lifecycle & back button
+  useCapacitorNative()
 
   return (
     <div className="app-layout">

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import { LogOut, User, Shield, Sun, Moon, LogIn } from 'lucide-react'
+import DownloadApkButton from './DownloadApkButton'
 
 export default function Navbar() {
   const { t } = useTranslation()
@@ -21,6 +22,9 @@ export default function Navbar() {
       </Link>
 
       <div className="header-actions">
+        {/* Direct Android APK Download Button */}
+        <DownloadApkButton variant="header" />
+
         {/* Dark / Light Mode Toggle */}
         <button
           id="theme-toggle-btn"

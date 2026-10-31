@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
 import { LogIn, Shield, User, AlertCircle, ArrowRight, Eye, EyeOff } from 'lucide-react'
+import DownloadApkButton from '../components/DownloadApkButton'
 
 export default function Login() {
   const { t } = useTranslation()
@@ -158,6 +159,9 @@ export default function Login() {
             {t('auth.registerHere')} <ArrowRight size={14} style={{ verticalAlign: 'middle' }} />
           </Link>
         </div>
+
+        {/* Direct Android APK Download Banner */}
+        <DownloadApkButton variant="card" />
       </div>
     </div>
   )

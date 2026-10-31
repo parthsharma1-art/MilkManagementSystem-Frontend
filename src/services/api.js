@@ -1,7 +1,8 @@
 import axios from 'axios'
 
-// Backend production base URL
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://milkmanagementsystem.onrender.com'
+// Backend production base URL (auto-strips trailing /api to prevent /api/api duplication)
+const RAW_API_URL = import.meta.env.VITE_API_URL || 'https://milkmanagementsystem.onrender.com'
+const API_BASE_URL = RAW_API_URL.trim().replace(/\/api\/?$/i, '').replace(/\/+$/, '')
 
 const api = axios.create({
   baseURL: API_BASE_URL,

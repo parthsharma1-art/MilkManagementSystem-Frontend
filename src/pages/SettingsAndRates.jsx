@@ -36,6 +36,23 @@ export default function SettingsAndRates() {
   const [capturedPhoto, setCapturedPhoto] = useState(null)
   const [cameraError, setCameraError] = useState('')
   const [previewPhotoUrl, setPreviewPhotoUrl] = useState(null)
+  const [previewImgError, setPreviewImgError] = useState(false)
+
+  const resolvePhotoProofUrl = (url, rateId) => {
+    if (!url && !rateId) return ''
+    if (url && (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:'))) {
+      return url
+    }
+    const baseUrl = (api.defaults?.baseURL || 'https://milkmanagementsystem.onrender.com').replace(/\/+$/, '')
+    if (url && url.startsWith('/')) {
+      const cleanPath = url.startsWith('/api') ? url : `/api${url}`
+      return `${baseUrl}${cleanPath}`
+    }
+    if (rateId) {
+      return `${baseUrl}/api/admin/rates/${rateId}/photo`
+    }
+    return url || ''
+  }
 
   const videoRef = useRef(null)
   const canvasRef = useRef(null)
@@ -430,18 +447,18 @@ export default function SettingsAndRates() {
                     </span>
                   </td>
                   <td>
-                    {r.adminCameraPhotoUrl ? (
+                    {r.adminCameraPhotoUrl || r.cameraPhotoBase64 ? (
                       <button
                         type="button"
                         className="btn btn-secondary"
                         style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
-                        onClick={() => setPreviewPhotoUrl(r.adminCameraPhotoUrl)}
+                        onClick={() => {
+                          const resolved = resolvePhotoProofUrl(r.adminCameraPhotoUrl, r.id)
+                          setPreviewPhotoUrl(resolved)
+                          setPreviewImgError(false)
+                        }}
                       >
-                        <img
-                          src={r.adminCameraPhotoUrl}
-                          alt="Proof"
-                          style={{ width: '22px', height: '22px', borderRadius: '4px', objectFit: 'cover' }}
-                        />
+                        <Camera size={14} style={{ color: '#0284c7' }} />
                         <span>View Photo</span>
                       </button>
                     ) : (
@@ -643,6 +660,7 @@ export default function SettingsAndRates() {
           <div
             style={{
               position: 'relative',
+              width: '100%',
               maxWidth: '560px',
               backgroundColor: 'var(--color-bg-card)',
               border: '1px solid var(--color-border)',
@@ -653,7 +671,10 @@ export default function SettingsAndRates() {
             onClick={(e) => e.stopPropagation()}
           >
             <div style={{ padding: '0.75rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--color-border)' }}>
-              <span style={{ fontWeight: 600, fontSize: '0.95rem' }}>Administrator Live Photo Proof</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Camera size={18} style={{ color: '#0284c7' }} />
+                <span style={{ fontWeight: 600, fontSize: '0.95rem' }}>Administrator Live Photo Proof</span>
+              </div>
               <button
                 type="button"
                 className="btn btn-secondary"
@@ -663,11 +684,42 @@ export default function SettingsAndRates() {
                 <X size={16} />
               </button>
             </div>
-            <img
-              src={previewPhotoUrl}
-              alt="Admin Proof"
-              style={{ width: '100%', maxHeight: '420px', objectFit: 'contain', display: 'block', backgroundColor: '#0f172a' }}
-            />
+            <div style={{ minHeight: '260px', maxHeight: '420px', backgroundColor: '#0f172a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {!previewImgError ? (
+                <img
+                  src={previewPhotoUrl}
+                  alt="Admin Proof"
+                  style={{ width: '100%', maxHeight: '420px', objectFit: 'contain', display: 'block' }}
+                  onError={() => setPreviewImgError(true)}
+                />
+              ) : (
+                <div style={{ padding: '2rem', textAlign: 'center', color: '#94a3b8' }}>
+                  <AlertCircle size={36} style={{ color: '#f59e0b', marginBottom: '0.5rem' }} />
+                  <p style={{ margin: '0 0 0.5rem 0', fontWeight: 600, color: '#f8fafc' }}>Photo preview unavailable directly</p>
+                  <p style={{ margin: '0 0 1rem 0', fontSize: '0.85rem' }}>Click below to view the verified administrator snapshot.</p>
+                  <a
+                    href={previewPhotoUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-primary"
+                    style={{ fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+                  >
+                    <span>Open in New Tab</span>
+                  </a>
+                </div>
+              )}
+            </div>
+            <div style={{ padding: '0.6rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--color-border)', backgroundColor: 'rgba(255,255,255,0.03)' }}>
+              <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Proof captured during cow milk price change</span>
+              <a
+                href={previewPhotoUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ fontSize: '0.8rem', color: '#38bdf8', textDecoration: 'underline' }}
+              >
+                Open Full Size ↗
+              </a>
+            </div>
           </div>
         </div>
       )}
